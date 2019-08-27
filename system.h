@@ -8,8 +8,8 @@
 #ifndef SYSTEM_H_
 #define SYSTEM_H_
 
-#include "list.h"
-
+#include "listpcb.h"
+#include "listsem.h"
 
 #define OLD_ENTRY 0x08
 #define NEW_ENTRY 0x60
@@ -30,9 +30,13 @@ class System {
 public:
 
 	static volatile unsigned lockFlag; // Unlocked
-	static List *threads;
+
+	static List *threads, *blockedThreads;
+	static SemList *semaphores;
+
 	static FirstThread *firstThread;
 	static Idle *idleThread;
+
 	static pInterrupt oldRoutine;
 
 	static volatile int counter;

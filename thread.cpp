@@ -6,10 +6,10 @@
  */
 
 #include "thread.h"
-#include "list.h"
 #include "system.h"
 #include "pcb.h"
 #include <stdio.h>
+#include "listpcb.h"
 
 Thread::Thread(StackSize stackSize, Time timeSlice) {
 	Id = ++staticID;
@@ -34,7 +34,7 @@ void Thread::waitToComplete() {
 
 Thread::~Thread() {
 	waitToComplete();
-	System::threads->remove(Id);
+	System::threads->remove(myPCB);
 	delete myPCB;
 }
 

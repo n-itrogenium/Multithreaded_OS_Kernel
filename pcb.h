@@ -9,12 +9,14 @@
 #define PCB_H_
 
 #include "thread.h"
-#include "list.h"
+#include "semaphor.h"
 #include <dos.h>
+#include "listpcb.h"
 
 typedef unsigned long StackSize;
 typedef unsigned int Time;
 typedef unsigned Address;
+typedef unsigned int TimeFlag;
 enum Flag { START, READY, FINISHED, BLOCKED };
 
 class PCB {
@@ -22,10 +24,12 @@ class PCB {
 public:
 
 	StackSize stackSize;
-	Time timeSlice;
+	Time timeSlice, waitTime;
 	Address *stack, ss, sp, bp;
+	TimeFlag timeFlag;
 	Flag state;
 
+	Semaphore* semWaitingOn;
 	Thread* myThread;
 	static PCB* running;
 	List *waitingToComplete;

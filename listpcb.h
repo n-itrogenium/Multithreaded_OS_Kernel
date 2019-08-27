@@ -25,10 +25,11 @@ public:
 	~List();
 
 	void add(PCB* pcb);
-	void remove(int ID);
+	void remove(PCB* pcb);
 	int isEmpty();
 	PCB* getFirst();
 	PCB* get(int ID);
+	void tickTime();
 
 };
 

@@ -12,21 +12,30 @@
 #include <stdio.h>
 #include "idle.h"
 #include "frstthrd.h"
+#include "listsem.h"
+
 
 List* System::threads = new List();
+List* System::blockedThreads = new List();
+SemList* System::semaphores = new SemList();
+
 volatile unsigned System::lockFlag = 1;
-volatile int System::counter = 0;
+
+volatile int System::counter = 20;
 volatile int System::context_on_demand = 0;
+
 FirstThread* System::firstThread = 0;
 Idle* System::idleThread = 0;
+
 pInterrupt System::oldRoutine = 0;
+
 Address tsp = 0, tss = 0, tbp = 0;
+
 
 void System::inic() {
 #ifndef BCC_BLOCK_IGNORE
 	System::oldRoutine = getvect(OLD_ENTRY);
 	setvect(OLD_ENTRY, timer);
-	//setvect(NEW_ENTRY, System::oldRoutine);
 #endif
 
 	System::firstThread = new FirstThread();
@@ -40,6 +49,7 @@ void System::restore() {
 #ifndef BCC_BLOCK_IGNORE
 	setvect(OLD_ENTRY, System::oldRoutine);
 #endif
+	delete blockedThreads;
 }
 
 
@@ -49,6 +59,7 @@ void interrupt timer(...) {
 		System::counter--;
 		tick();
 		(*System::oldRoutine)();
+		System::blockedThreads->tickTime();
 	}
 	if (System::counter == 0 || System::context_on_demand) {
 		if (System::lockFlag) { 	// If it's unlocked
@@ -77,11 +88,12 @@ void interrupt timer(...) {
 /////////////////////////NE ZABORAVI DA OBRISES!!!!!//////////////////
 			//printf("Promenjen kontekst niti na %d\n", PCB::running->myThread->getId());
 
+			System::counter = PCB::running->timeSlice;
+
 			tsp = PCB::running->sp;
 			tss = PCB::running->ss;
 			tbp = PCB::running->bp;
 
-			System::counter = PCB::running->timeSlice;
 
 #ifndef BCC_BLOCK_IGNORE
 			asm {

@@ -7,7 +7,7 @@
 class Idle : public Thread {
 public:
 	Idle(): Thread(128, 1) {}
-	~Idle();
+	virtual ~Idle();
 	virtual void run();
 	void start();
 };

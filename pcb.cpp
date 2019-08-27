@@ -17,8 +17,11 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 	this->stackSize = stackSize;
 	this->timeSlice = timeSlice;
 	this->myThread = myThread;
+	semWaitingOn = 0;
 	waitingToComplete = new List();
 	state = BLOCKED;
+	timeFlag = 1;
+	waitTime = 0;
 
 	stackSize /= sizeof(unsigned short); // Data = 2B, unsigned short = 2B
 	stack = new Address[stackSize];
@@ -53,8 +56,8 @@ PCB::~PCB() {
 void PCB::waitToComplete(Thread *thread) {
 	//printf("Thread %d pozvala waitToComplete za Thread %d \n",PCB::running->myThread->getId(),thread->getId());
 	if (state == FINISHED || state == START ||
-			this == System::idleThread->myPCB ||
-			this == System::firstThread->myPCB ||
+			this == System::idleThread->getMyPCB() ||
+			this == System::firstThread->getMyPCB() ||
 			this == PCB::running) {
 				//printf("waitToComplete se ignorise! \n");
 				unlock

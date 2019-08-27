@@ -1,5 +1,6 @@
-#include "list.h"
+#include "listpcb.h"
 #include "pcb.h"
+#include "krnlsem.h"
 
 List::List() {
 	head = tail = 0;
@@ -24,10 +25,10 @@ void List::add(PCB * pcb) {
 	num_of_nodes++;
 }
 
-void List::remove(int ID) {
+void List::remove(PCB* pcb) {
 	Node *temp = head, *prev = 0, *oldNode;
 	while (temp) {
-		if (temp->pcb->myThread->getId() != ID) {
+		if (temp->pcb != pcb) {
 			prev = temp;
 			temp = temp->next;
 		}
@@ -64,3 +65,40 @@ PCB* List::get(int ID) {
 	}
 	return 0;
 }
+
+void List::tickTime() {
+	if (!head) {
+		unlock
+		return;
+	}
+	Node* temp = head;
+	PCB* curr_pcb = 0;
+	while (temp) {
+		if (--(temp->pcb->waitTime) == 0)
+			curr_pcb = temp->pcb;
+			curr_pcb->timeFlag = 0;
+			curr_pcb->semWaitingOn->incVal();
+			curr_pcb->semWaitingOn->waitingList()->remove(curr_pcb);
+			curr_pcb->semWaitingOn = 0;
+			curr_pcb->myThread->start();
+			remove(curr_pcb);
+		temp = temp->next;
+	}
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
