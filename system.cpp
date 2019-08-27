@@ -47,7 +47,11 @@ void System::restore() {
 
 void interrupt timer(...) {
 
-	if (!System::context_on_demand) System::counter--;
+	if (!System::context_on_demand) {
+		System::counter--;
+		tick();
+		asm int 60h
+	}
 	if (System::counter == 0 || System::context_on_demand) {
 		if (System::lockFlag) { 	// If it's unlocked
 			System::context_on_demand = 0;	// Reset request
@@ -62,9 +66,18 @@ void interrupt timer(...) {
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
 
-			if (!(PCB::running->state == FINISHED))
+/////////////////////////NE ZABORAVI DA OBRISES!!!!!//////////////////
+			//printf("Kontekst niti je %d\n", PCB::running->myThread->getId());
+
+			if (PCB::running->myThread != System::idleThread
+					&& PCB::running->state == READY)
 				Scheduler::put((PCB *)PCB::running);
+
 			PCB::running = Scheduler::get();
+			if (!(PCB::running)) PCB::running = System::idleThread->getMyPCB();
+
+/////////////////////////NE ZABORAVI DA OBRISES!!!!!//////////////////
+			//printf("Promenjen kontekst niti na %d\n", PCB::running->myThread->getId());
 
 			tsp = PCB::running->sp;
 			tss = PCB::running->ss;

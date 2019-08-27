@@ -86,7 +86,7 @@ protected:
 	}
 };
 
-void tick();
+void tick() { }
 
 int userMain(int argc, char** argv) {
 	lock

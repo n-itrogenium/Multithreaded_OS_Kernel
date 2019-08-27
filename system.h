@@ -21,8 +21,6 @@ void interrupt timer(...);
 extern void tick();
 
 
-
-
 #define lock System::lockFlag = 0;
 #define unlock System::lockFlag = 1;\
 	if (System::context_on_demand) {\
