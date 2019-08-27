@@ -27,6 +27,7 @@ public:
 	void add(PCB* pcb);
 	void remove(int ID);
 	int isEmpty();
+	PCB* getFirst();
 	PCB* get(int ID);
 
 };

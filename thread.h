@@ -28,11 +28,12 @@ public:
 
 	PCB* getMyPCB();
 
-protected:
-	friend class PCB;
 	Thread (StackSize stackSize = defaultStackSize, Time timeSlice =
 			defaultTimeSlice);
-	virtual void run() {}
+
+protected:
+	friend class PCB;
+	virtual void run() { }
 
 private:
 	PCB* myPCB;

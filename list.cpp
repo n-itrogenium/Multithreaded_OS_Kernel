@@ -46,6 +46,15 @@ int List::isEmpty() {
 	else return 0;
 }
 
+PCB* List::getFirst() {
+	if (!head) return 0;
+	Node *temp = head;
+	head = head->next;
+	if (!head) tail = 0;
+	num_of_nodes--;
+	return temp->pcb;
+}
+
 PCB* List::get(int ID) {
 	Node *temp = head;
 	while (temp) {

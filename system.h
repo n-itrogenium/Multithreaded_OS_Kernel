@@ -16,16 +16,11 @@
 
 typedef void interrupt (*pInterrupt)(...);
 void interrupt timer(...);
-//void syncPrintf(char *text, ID id = 0);
 
 extern void tick();
 
-
 #define lock System::lockFlag = 0;
-#define unlock System::lockFlag = 1;\
-	if (System::context_on_demand) {\
-	dispatch();\
-};
+#define unlock { System::lockFlag = 1; if (System::context_on_demand) dispatch(); }
 
 class FirstThread;
 class Idle;

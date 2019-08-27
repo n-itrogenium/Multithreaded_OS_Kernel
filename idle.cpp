@@ -1,5 +1,5 @@
 #include "idle.h"
-
+#include <stdio.h>
 
 Idle::~Idle() { delete getMyPCB(); }
 

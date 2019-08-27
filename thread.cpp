@@ -28,6 +28,7 @@ void Thread::start() {
 }
 
 void Thread::waitToComplete() {
+	lock
 	myPCB->waitToComplete(this);
 }
 

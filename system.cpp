@@ -6,6 +6,7 @@
  */
 
 #include "system.h"
+#include "thread.h"
 #include "pcb.h"
 #include <dos.h>
 #include <stdio.h>
@@ -27,6 +28,7 @@ void System::inic() {
 	setvect(OLD_ENTRY, timer);
 	//setvect(NEW_ENTRY, System::oldRoutine);
 #endif
+
 	System::firstThread = new FirstThread();
 	System::firstThread->inic();
 
@@ -38,10 +40,6 @@ void System::restore() {
 #ifndef BCC_BLOCK_IGNORE
 	setvect(OLD_ENTRY, System::oldRoutine);
 #endif
-	delete firstThread;
-	delete idleThread;
-	threads->~List();
-	delete threads;
 }
 
 
@@ -98,9 +96,3 @@ void interrupt timer(...) {
 		}
 	}
 }
-
-/*void syncPrintf(char *text, ID id) {
-	lock
-	printf(text,id);
-	unlock
-}*/

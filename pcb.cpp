@@ -6,6 +6,9 @@
  */
 
 #include "pcb.h"
+#include "idle.h"
+#include "frstthrd.h"
+#include <stdio.h>
 
 PCB* PCB::running = 0;
 
@@ -39,23 +42,27 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 #endif
 	bp = sp;
 
+	stack[stackSize - 14] = bp;
+
 }
 
 PCB::~PCB() {
-	// TODO Auto-generated destructor stub
+	delete stack;
 }
 
 void PCB::waitToComplete(Thread *thread) {
-	lock
-	if (PCB::state == FINISHED || PCB::state == START ||
-			thread == System::idleThread ||
-			thread == System::firstThread ||
+	//printf("Thread %d pozvala waitToComplete za Thread %d \n",PCB::running->myThread->getId(),thread->getId());
+	if (state == FINISHED || state == START ||
+			this == System::idleThread->myPCB ||
+			this == System::firstThread->myPCB ||
 			this == PCB::running) {
+				//printf("waitToComplete se ignorise! \n");
 				unlock
 				return;
 	}
-	PCB::waitingToComplete->add(PCB::running);
+	waitingToComplete->add(PCB::running);
 	PCB::running->state = BLOCKED;
+	//printf("Thread %d se blokirala i vrsi se promena konteksta. \n",PCB::running->myThread->getId());
 	dispatch();
 	unlock
 }
@@ -63,10 +70,16 @@ void PCB::waitToComplete(Thread *thread) {
 void PCB::wrapper() {
 	PCB::running->myThread->run();
 	PCB::running->state = FINISHED;
-	List::Node *temp = PCB::running->waitingToComplete->head;
-	while (temp) {
-		temp->pcb->myThread->start();
-		temp = temp->next;
+	lock
+	//printf("Thread %d je zavrsila! \n",PCB::running->myThread->getId());
+	unlock
+	PCB* temp = 0;
+	while (!PCB::running->waitingToComplete->isEmpty()) {
+		temp = PCB::running->waitingToComplete->getFirst();
+		lock
+		//printf("Iz liste uzeta thread %d \n",temp->myThread->getId());
+		unlock
+		temp->myThread->start();
 	}
 	dispatch();
 }
