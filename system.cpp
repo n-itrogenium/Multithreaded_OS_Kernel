@@ -9,29 +9,34 @@
 #include "pcb.h"
 #include <dos.h>
 #include <stdio.h>
+#include "idle.h"
+#include "frstthrd.h"
 
+List* System::threads = new List();
+volatile unsigned System::lockFlag = 1;
 volatile int System::counter = 0;
 volatile int System::context_on_demand = 0;
 FirstThread* System::firstThread = 0;
-IdleThread* System::idleThread = 0;
+Idle* System::idleThread = 0;
+pInterrupt System::oldRoutine = 0;
 Address tsp = 0, tss = 0, tbp = 0;
 
 void System::inic() {
 #ifndef BCC_BLOCK_IGNORE
-	oldRoutine = getvect(OLD_ENTRY);
+	System::oldRoutine = getvect(OLD_ENTRY);
 	setvect(OLD_ENTRY, timer);
-	setvect(NEW_ENTRY, oldRoutine);
+	setvect(NEW_ENTRY, System::oldRoutine);
 #endif
 	System::firstThread = new FirstThread();
 	System::firstThread->inic();
 
-	System::idleThread = new IdleThread();
+	System::idleThread = new Idle();
 	System::idleThread->start();
 }
 
 void System::restore() {
 #ifndef BCC_BLOCK_IGNORE
-	setvect(OLD_ENTRY, oldRoutine);
+	setvect(OLD_ENTRY, System::oldRoutine);
 #endif
 	delete firstThread;
 	delete idleThread;
@@ -44,7 +49,7 @@ void interrupt timer(...) {
 
 	if (!System::context_on_demand) System::counter--;
 	if (System::counter == 0 || System::context_on_demand) {
-		if (lockFlag) { 	// If it's unlocked
+		if (System::lockFlag) { 	// If it's unlocked
 			System::context_on_demand = 0;	// Reset request
 #ifndef BCC_BLOCK_IGNORE
 			asm {
@@ -81,8 +86,8 @@ void interrupt timer(...) {
 	}
 }
 
-/* void syncPrintf(char *text, ID id = 0) {
+/*void syncPrintf(char *text, ID id) {
 	lock
 	printf(text,id);
 	unlock
-} */
+}*/

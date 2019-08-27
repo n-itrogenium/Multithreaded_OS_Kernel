@@ -9,8 +9,6 @@
 #define SYSTEM_H_
 
 #include "list.h"
-#include "Idletred.h"
-#include "trdfrst.h"
 
 
 #define OLD_ENTRY 0x08
@@ -22,19 +20,26 @@ void interrupt timer(...);
 
 extern void tick();
 
-List *threads = new List();
 
-volatile unsigned lockFlag = 1; // Unlocked
-#define lock lockFlag = 0;
-#define unlock { lockFlag = 1; if (System::context_on_demand) { dispatch(); }
 
+
+#define lock System::lockFlag = 0;
+#define unlock System::lockFlag = 1;\
+	if (System::context_on_demand) {\
+	dispatch();\
+};
+
+class FirstThread;
+class Idle;
 
 class System {
 
 public:
 
+	static volatile unsigned lockFlag; // Unlocked
+	static List *threads;
 	static FirstThread *firstThread;
-	static IdleThread *idleThread;
+	static Idle *idleThread;
 	static pInterrupt oldRoutine;
 
 	static volatile int counter;

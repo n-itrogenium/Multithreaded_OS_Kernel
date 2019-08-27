@@ -14,7 +14,7 @@
 Thread::Thread(StackSize stackSize, Time timeSlice) {
 	Id = ++staticID;
 	myPCB = new PCB(stackSize, timeSlice, this);
-	threads->add(myPCB);
+	System::threads->add(myPCB);
 }
 
 PCB * Thread::getMyPCB() {
@@ -39,7 +39,7 @@ void Thread::waitToComplete() {
 
 Thread::~Thread() {
 	waitToComplete();
-	threads->remove(Id);
+	System::threads->remove(Id);
 }
 
 ID Thread::getId() { return Id; }
@@ -49,7 +49,7 @@ ID Thread::getRunningId() {
 }
 
 Thread * Thread::getThreadById(ID id) {
-	return threads->get(id)->myThread;
+	return System::threads->get(id)->myThread;
 }
 
 ID Thread::staticID = 0;

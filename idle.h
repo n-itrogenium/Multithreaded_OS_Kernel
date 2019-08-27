@@ -1,5 +1,5 @@
-#ifndef IDLETRED_H_
-#define IDLETRED_H_
+#ifndef IDLE_H_
+#define IDLE_H_
 
 #include "thread.h"
 #include "pcb.h"

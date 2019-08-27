@@ -7,6 +7,8 @@
 
 #include "pcb.h"
 
+PCB* PCB::running = 0;
+
 PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 
 	this->stackSize = stackSize;

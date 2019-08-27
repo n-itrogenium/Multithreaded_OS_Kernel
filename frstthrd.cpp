@@ -1,12 +1,13 @@
 #include "frstthrd.h"
 #include "system.h"
+#include "pcb.h"
 
 FirstThread::~FirstThread() {
 	delete getMyPCB();
 }
 
 void FirstThread::inic() {
-	System::counter = firstThread->getMyPCB()->timeSlice;
-	firstThread->getMyPCB()->state = READY;
-	PCB::running = firstThread->getMyPCB();
+	System::counter = System::firstThread->getMyPCB()->timeSlice;
+	System::firstThread->getMyPCB()->state = READY;
+	PCB::running = System::firstThread->getMyPCB();
 }
