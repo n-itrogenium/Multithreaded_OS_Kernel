@@ -1,5 +1,5 @@
 #include "list.h"
-
+#include "pcb.h"
 
 List::List() {
 	head = tail = 0;

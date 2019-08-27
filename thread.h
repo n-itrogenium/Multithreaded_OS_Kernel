@@ -3,7 +3,6 @@
 #define _thread_h_
 
 #include "system.h"
-#include "pcb.h"
 #include "schedule.h"
 
 typedef unsigned long StackSize;
@@ -15,6 +14,9 @@ typedef int ID;
 class PCB; // Kernel's implementation of a user's thread
 
 class Thread {
+private:
+	static ID staticID;
+	ID Id;
 public:
 	void start();
 	void waitToComplete();
@@ -26,6 +28,8 @@ public:
 
 	PCB* getMyPCB();
 
+	void runIdle();
+
 protected:
 	friend class PCB;
 	Thread (StackSize stackSize = defaultStackSize, Time timeSlice =
@@ -34,8 +38,6 @@ protected:
 
 private:
 	PCB* myPCB;
-	static ID staticID;
-	ID Id = ++staticID;
 };
 
 void dispatch ();

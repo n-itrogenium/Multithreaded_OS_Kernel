@@ -1,7 +1,8 @@
 #ifndef _list_h_
 #define _list_h_
 
-#include "pcb.h"
+class Thread;
+class PCB;
 
 class List {
 

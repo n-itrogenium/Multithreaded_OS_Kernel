@@ -12,17 +12,18 @@
 #include "list.h"
 #include <dos.h>
 
-typedef unsigned long Address;
+typedef unsigned long StackSize;
+typedef unsigned int Time;
+typedef unsigned Address;
 enum Flag { READY, FINISHED, BLOCKED };
 
 class PCB {
 
 public:
 
-	StackSize stackSize; // ako ne bude potrebno, izbaci
-	Time timeSlice; // ako ne bude potrebno, izbaci
+	StackSize stackSize;
+	Time timeSlice;
 	Address *stack, ss, sp, bp;
-
 	Flag state;
 
 	Thread* myThread;

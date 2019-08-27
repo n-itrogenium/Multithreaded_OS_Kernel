@@ -8,39 +8,34 @@
 #ifndef SYSTEM_H_
 #define SYSTEM_H_
 
-#include <dos.h>
 #include "list.h"
-#include "frstthrd.h"
-#include "idle.h"
+#include "Idletred.h"
+#include "trdfrst.h"
 
 
 #define OLD_ENTRY 0x08
 #define NEW_ENTRY 0x60
 
-typedef void interrupt (*pInterrupt)();
-void interrupt timer();
+typedef void interrupt (*pInterrupt)(...);
+void interrupt timer(...);
+//void syncPrintf(char *text, ID id = 0);
 
 extern void tick();
 
 List *threads = new List();
 
-FirstThread *firstThread = 0;
-Idle *idleThread = 0;
-
 volatile unsigned lockFlag = 1; // Unlocked
 #define lock lockFlag = 0;
-#define unlock lockFlag = 1;\	
-if (context_on_demand) {\		
-		dispatch();\				
-}
-
-volatile int counter = 0;
-volatile int context_on_demand = 0;
+#define unlock { lockFlag = 1; if (System::context_on_demand) { dispatch(); }
 
 
 class System {
 
 public:
+
+	static FirstThread *firstThread;
+	static IdleThread *idleThread;
+	static pInterrupt oldRoutine;
 
 	static volatile int counter;
 	static volatile int context_on_demand;

@@ -25,13 +25,16 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 
 	// Podmecemo adresu javnog statickog wrapper-a,
 	// koji ce posredno da poziva run() tekuce niti:
+#ifndef BCC_BLOCK_IGNORE
 	stack[stackSize - 4] = FP_SEG(PCB::wrapper);
 	stack[stackSize - 5] = FP_OFF(PCB::wrapper);
+#endif
 
 	// Od stack[stackSize - 6] do stack[stackSize - 13] su mesta za registre procesora 
-
+#ifndef BCC_BLOCK_IGNORE
 	ss = FP_SEG(stack + stackSize - 14); // Stek pocinje od ove lokacije
 	sp = FP_OFF(stack + stackSize - 14);
+#endif
 	bp = sp;
 
 }

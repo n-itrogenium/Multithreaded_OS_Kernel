@@ -6,9 +6,13 @@
  */
 
 #include "thread.h"
+#include "list.h"
+#include "system.h"
+#include "pcb.h"
+#include <stdio.h>
 
-Thread::Thread(StackSize stackSize = defaultStackSize, Time timeSlice =
-			defaultTimeSlice) {
+Thread::Thread(StackSize stackSize, Time timeSlice) {
+	Id = ++staticID;
 	myPCB = new PCB(stackSize, timeSlice, this);
 	threads->add(myPCB);
 }
@@ -22,10 +26,15 @@ void Thread::start() {
 	Scheduler::put(myPCB);
 }
 
+void Thread::runIdle() {
+	while (1);
+}
+
 void Thread::waitToComplete() {
 	myPCB->waitingToComplete->add(PCB::running);
 	PCB::running->state = BLOCKED;
 	dispatch();
+	// SREDI OVO PICKO
 }
 
 Thread::~Thread() {
@@ -47,7 +56,7 @@ ID Thread::staticID = 0;
 
 void dispatch() { 
 	asm cli;
-	context_on_demand = 1;
+	System::context_on_demand = 1;
 	timer();
 	asm sti;
 }
