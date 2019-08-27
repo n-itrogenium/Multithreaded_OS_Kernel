@@ -25,7 +25,7 @@ void System::inic() {
 #ifndef BCC_BLOCK_IGNORE
 	System::oldRoutine = getvect(OLD_ENTRY);
 	setvect(OLD_ENTRY, timer);
-	setvect(NEW_ENTRY, System::oldRoutine);
+	//setvect(NEW_ENTRY, System::oldRoutine);
 #endif
 	System::firstThread = new FirstThread();
 	System::firstThread->inic();
@@ -50,7 +50,7 @@ void interrupt timer(...) {
 	if (!System::context_on_demand) {
 		System::counter--;
 		tick();
-		asm int 60h
+		(*System::oldRoutine)();
 	}
 	if (System::counter == 0 || System::context_on_demand) {
 		if (System::lockFlag) { 	// If it's unlocked

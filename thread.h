@@ -28,8 +28,6 @@ public:
 
 	PCB* getMyPCB();
 
-	void runIdle();
-
 protected:
 	friend class PCB;
 	Thread (StackSize stackSize = defaultStackSize, Time timeSlice =

@@ -14,6 +14,7 @@
 Thread::Thread(StackSize stackSize, Time timeSlice) {
 	Id = ++staticID;
 	myPCB = new PCB(stackSize, timeSlice, this);
+	myPCB->state = START;
 	System::threads->add(myPCB);
 }
 
@@ -26,20 +27,14 @@ void Thread::start() {
 	Scheduler::put(myPCB);
 }
 
-void Thread::runIdle() {
-	while (1);
-}
-
 void Thread::waitToComplete() {
-	myPCB->waitingToComplete->add(PCB::running);
-	PCB::running->state = BLOCKED;
-	dispatch();
-	// SREDI OVO PICKO
+	myPCB->waitToComplete(this);
 }
 
 Thread::~Thread() {
 	waitToComplete();
 	System::threads->remove(Id);
+	delete myPCB;
 }
 
 ID Thread::getId() { return Id; }

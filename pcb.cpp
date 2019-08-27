@@ -45,13 +45,28 @@ PCB::~PCB() {
 	// TODO Auto-generated destructor stub
 }
 
+void PCB::waitToComplete(Thread *thread) {
+	lock
+	if (PCB::state == FINISHED || PCB::state == START ||
+			thread == System::idleThread ||
+			thread == System::firstThread ||
+			this == PCB::running) {
+				unlock
+				return;
+	}
+	PCB::waitingToComplete->add(PCB::running);
+	PCB::running->state = BLOCKED;
+	dispatch();
+	unlock
+}
+
 void PCB::wrapper() {
 	PCB::running->myThread->run();
-	List::Node *temp = running->waitingToComplete->head;
+	PCB::running->state = FINISHED;
+	List::Node *temp = PCB::running->waitingToComplete->head;
 	while (temp) {
 		temp->pcb->myThread->start();
 		temp = temp->next;
 	}
-	running->state = FINISHED;
 	dispatch();
 }

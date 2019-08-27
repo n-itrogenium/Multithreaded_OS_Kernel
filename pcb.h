@@ -15,7 +15,7 @@
 typedef unsigned long StackSize;
 typedef unsigned int Time;
 typedef unsigned Address;
-enum Flag { READY, FINISHED, BLOCKED };
+enum Flag { START, READY, FINISHED, BLOCKED };
 
 class PCB {
 
@@ -34,6 +34,7 @@ public:
 	virtual ~PCB();
 
 	static void wrapper();
+	void waitToComplete(Thread *);
 
 };
 
