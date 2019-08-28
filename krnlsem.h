@@ -18,7 +18,8 @@ class KernelSem {
 private:
 
 	int value;
-
+	static int staticID;
+	int ID;
 public:
 
 	Semaphore* mySem;

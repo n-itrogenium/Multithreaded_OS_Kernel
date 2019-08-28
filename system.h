@@ -10,6 +10,9 @@
 
 #include "listpcb.h"
 #include "listsem.h"
+#include <stdio.h>
+#include <stdarg.h>
+#include <dos.h>
 
 #define OLD_ENTRY 0x08
 #define NEW_ENTRY 0x60
@@ -21,6 +24,9 @@ extern void tick();
 
 #define lock System::lockFlag = 0;
 #define unlock { System::lockFlag = 1; if (System::context_on_demand) dispatch(); }
+
+extern int syncPrintf(const char *format, ...);
+
 
 class FirstThread;
 class Idle;

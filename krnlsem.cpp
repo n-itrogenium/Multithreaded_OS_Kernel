@@ -8,7 +8,10 @@
 #include "krnlsem.h"
 #include "pcb.h"
 
+int KernelSem::staticID = 0;
+
 KernelSem::KernelSem(int init, Semaphore* mySem) {
+	ID = ++staticID;
 	value = init;
 	this->mySem = mySem;
 	waiting = new List();
@@ -41,7 +44,6 @@ int KernelSem::wait(Time maxTimeToWait) {
 	unlock
 	return PCB::running->timeFlag;
 }
-
 
 int KernelSem::signal(int n) {
 	lock
