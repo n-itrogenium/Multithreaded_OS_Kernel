@@ -26,7 +26,7 @@ public:
 	StackSize stackSize;
 	Time timeSlice, waitTime;
 	Address *stack, ss, sp, bp;
-	TimeFlag timeFlag;
+	TimeFlag timeExceeded;
 	Flag state;
 
 	Semaphore* semWaitingOn;

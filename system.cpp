@@ -75,18 +75,12 @@ void interrupt timer(...) {
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
 
-/////////////////////////NE ZABORAVI DA OBRISES!!!!!//////////////////
-			//printf("Kontekst niti je %d\n", PCB::running->myThread->getId());
-
 			if (PCB::running->myThread != System::idleThread
 					&& PCB::running->state == READY)
 				Scheduler::put((PCB *)PCB::running);
 
 			PCB::running = Scheduler::get();
 			if (!(PCB::running)) PCB::running = System::idleThread->getMyPCB();
-
-/////////////////////////NE ZABORAVI DA OBRISES!!!!!//////////////////
-			//printf("Promenjen kontekst niti na %d\n", PCB::running->myThread->getId());
 
 			System::counter = PCB::running->timeSlice;
 

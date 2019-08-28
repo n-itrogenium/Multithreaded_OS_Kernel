@@ -20,7 +20,7 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 	semWaitingOn = 0;
 	waitingToComplete = new List();
 	state = BLOCKED;
-	timeFlag = 1;
+	timeExceeded = 1;
 	waitTime = 0;
 
 	stackSize /= sizeof(unsigned short); // Data = 2B, unsigned short = 2B

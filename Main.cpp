@@ -14,6 +14,5 @@ int main(int argc, char** argv) {
 	System::inic();
 	userMain(argc, argv);
 	System::restore();
-	printf("Happy ending!\n");
 	return 0;
 }

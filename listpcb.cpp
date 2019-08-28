@@ -67,6 +67,7 @@ PCB* List::get(int ID) {
 }
 
 void List::tickTime() {
+	lock
 	if (!head) {
 		unlock
 		return;
@@ -74,16 +75,18 @@ void List::tickTime() {
 	Node* temp = head;
 	PCB* curr_pcb = 0;
 	while (temp) {
-		if (--(temp->pcb->waitTime) == 0)
+		if (--(temp->pcb->waitTime) == 0) {
 			curr_pcb = temp->pcb;
-			curr_pcb->timeFlag = 0;
+			curr_pcb->timeExceeded = 0;
 			curr_pcb->semWaitingOn->incVal();
 			curr_pcb->semWaitingOn->waitingList()->remove(curr_pcb);
 			curr_pcb->semWaitingOn = 0;
 			curr_pcb->myThread->start();
 			remove(curr_pcb);
+		}
 		temp = temp->next;
 	}
+	unlock
 }
 
 

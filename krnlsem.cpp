@@ -34,15 +34,16 @@ int KernelSem::wait(Time maxTimeToWait) {
 	if (--value < 0) {
 		PCB::running->state = BLOCKED;
 		PCB::running->semWaitingOn = mySem;
+		PCB::running->timeExceeded = 1;
 		waiting->add(PCB::running);
 		if (maxTimeToWait > 0) {
 			PCB::running->waitTime = maxTimeToWait;
 			System::blockedThreads->add(PCB::running);
 		}
+		unlock
 		dispatch();
 	}
-	unlock
-	return PCB::running->timeFlag;
+	return PCB::running->timeExceeded;
 }
 
 int KernelSem::signal(int n) {
@@ -56,7 +57,7 @@ int KernelSem::signal(int n) {
 		if (!waiting->isEmpty()) {
 			temp = waiting->getFirst();
 			temp->waitTime = 0;
-			temp->timeFlag = 1;
+			temp->timeExceeded = 1;
 			temp->semWaitingOn = 0;
 			System::blockedThreads->remove(temp);
 			temp->myThread->start();
@@ -65,20 +66,19 @@ int KernelSem::signal(int n) {
 		unlock
 		return 0;
 	}
+	int ret = 0;
 	if (n>0) {
-		int ret = 0;
-
 		for (int i = 0; i < n || waiting->isEmpty(); i++) {
 			temp = waiting->getFirst();
 			temp->waitTime = 0;
-			temp->timeFlag = 1;
+			temp->timeExceeded = 1;
 			temp->semWaitingOn = 0;
 			System::blockedThreads->remove(temp);
 			temp->myThread->start();
 			ret++;
 		}
 		value += n;
-		unlock
-		return ret;
 	}
+	unlock
+	return ret;
 }
