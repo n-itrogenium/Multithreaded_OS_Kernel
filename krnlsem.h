@@ -28,7 +28,7 @@ public:
 	virtual ~KernelSem();
 
 	virtual int wait (Time maxTimeToWait);
-	virtual int signal(int n=0);
+	virtual int signal(int n = 0);
 
 	int val () const;
 	void incVal();

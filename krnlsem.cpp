@@ -53,7 +53,10 @@ int KernelSem::signal(int n) {
 	if (n==0) {
 		if (!waiting->isEmpty()) {
 			temp = waiting->getFirst();
+			temp->waitTime = 0;
+			temp->timeFlag = 1;
 			temp->semWaitingOn = 0;
+			System::blockedThreads->remove(temp);
 			temp->myThread->start();
 		}
 		value++;
@@ -65,7 +68,10 @@ int KernelSem::signal(int n) {
 
 		for (int i = 0; i < n || waiting->isEmpty(); i++) {
 			temp = waiting->getFirst();
+			temp->waitTime = 0;
+			temp->timeFlag = 1;
 			temp->semWaitingOn = 0;
+			System::blockedThreads->remove(temp);
 			temp->myThread->start();
 			ret++;
 		}

@@ -8,7 +8,7 @@
 /*
  	 Test: Semafori sa spavanjem
 */
-/*
+
 int syncPrintf(const char *format, ...) {
 	int res;
 	va_list args;
@@ -73,4 +73,4 @@ int userMain(int argc, char** argv)
 	return 0;
 }
 
-*/
+
