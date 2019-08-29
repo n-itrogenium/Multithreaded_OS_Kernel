@@ -15,15 +15,10 @@ const int VAL_BLOCKED = -1;
 
 class KernelSem {
 
-private:
-
-	int value;
-
 public:
-
+	int value;
 	Semaphore* mySem;
-	List* waiting;
-	//List *limitedTime, *unlimited;
+	List limitedTime, unlimited, total;
 
 	KernelSem(int init, Semaphore* mySem);
 	virtual ~KernelSem();

@@ -29,7 +29,7 @@ public:
 	int isEmpty();
 	PCB* getFirst();
 	PCB* get(int ID);
-	void tickTime();
+	int onTick();
 
 };
 

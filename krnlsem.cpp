@@ -9,27 +9,31 @@
 #include "pcb.h"
 
 KernelSem::KernelSem(int init, Semaphore* mySem) {
-	value = init;
+	if (value >= 0) value = init;
+	else value = 0;
 	this->mySem = mySem;
-	waiting = new List();
-	//limitedTime = new List();
-	//unlimited = new List();
+	System::semaphores->add(this);
 }
 
 KernelSem::~KernelSem() {
-	PCB* temp = waiting->head->pcb;
-	while(waiting->head) {
-		syncPrintf("Nit %d oslobodjena brisanjem semafora...\n",temp->myThread->getId());
+	PCB* temp;
+	while(!total.isEmpty()) {
+		temp = total.getFirst();
 		temp->timeExceeded = 1;
 		temp->semWaitingOn = 0;
-		if (temp->waitTime) System::blockedThreads->remove(temp);
 		temp->waitTime = 0;
 		temp->state = READY;
 		Scheduler::put(temp);
-		waiting->head = waiting->head->next;
-		temp = waiting->head->pcb;
 	}
-	delete waiting;
+
+	temp = unlimited.head->pcb;
+	while(!unlimited.isEmpty())
+		temp = unlimited.getFirst();
+
+	temp = limitedTime.head->pcb;
+	while(!limitedTime.isEmpty())
+			temp = limitedTime.getFirst();
+
 	System::semaphores->remove(this);
 }
 
@@ -40,86 +44,38 @@ int KernelSem::val() const {
 void KernelSem::incVal() {
 	value++;
 }
-/*
+
+
 int KernelSem::wait(Time maxTimeToWait) {
 	lock
-	if (maxTimeToWait < 0) { unlock; return 1; }
 	if (--value < 0) {
 		PCB::running->state = BLOCKED;
+		PCB::running->semWaitingOn = mySem;
+		total.add((PCB*) PCB::running);
 		if (maxTimeToWait == 0)
-			unlimited->add(PCB::running);
+			unlimited.add((PCB*) PCB::running);
 		else {
 			PCB::running->waitTime = maxTimeToWait;
-			limitedTime->add(PCB::running);
+			limitedTime.add((PCB*) PCB::running);
 		}
 		unlock
 		dispatch();
-	}
-	return PCB::running->timeExceeded;
-}
-*/
-/*
-int KernelSem::wait(Time maxTimeToWait) {
-	lock
-	if (--value < 0) {
-		PCB::running->state = BLOCKED;
-		PCB::running->semWaitingOn = mySem;
-		waiting->add(PCB::running);
-		if (maxTimeToWait > 0) {
-			printf("Nit %d zaustavljena na %d tikova.\n",PCB::running->myThread->getId(),maxTimeToWait);
-			PCB::running->waitTime = maxTimeToWait;
-			System::blockedThreads->add(PCB::running);
-		} else printf("Nit %d zaustavljena neograniceno!!!.\n",PCB::running->myThread->getId());
-	}
-	//unlock
-	dispatch();
-	//lock
-	int ret = PCB::running->timeExceeded;
-	//printf("Nit %d timeExceeded = %d\n",PCB::running->myThread->getId(),ret);
-	//PCB::running->timeExceeded = 1;
-	unlock
-	printf("Nit %d timeExceeded = %d\n",PCB::running->myThread->getId(),PCB::running->timeExceeded);
-	return PCB::running->timeExceeded;
-//	}
-//	unlock
-//	return 1;
-}*/
-
-int KernelSem::wait(Time maxTimeToWait) {
-	lock
-	printf("Nit %d - VALUE = %d\n",PCB::running->myThread->getId(),value);
-	if (--value < 0) {
-
-		PCB::running->state = BLOCKED;
-		PCB::running->semWaitingOn = mySem;
-		waiting->add((PCB*)PCB::running);
+		lock
+		int ret = PCB::running->timeExceeded;
 		PCB::running->timeExceeded = 1;
-
-		if (maxTimeToWait > 0) {
-
-			printf("Nit %d zaustavljena na %d tikova.\n",PCB::running->myThread->getId(),maxTimeToWait);
-			PCB::running->waitTime = maxTimeToWait;
-			System::blockedThreads->add((PCB*)PCB::running);
-
-		} else
-
-			printf("Nit %d zaustavljena neograniceno!!!.\n",PCB::running->myThread->getId());
-
-		dispatch();
-
+		unlock
+		return ret;
 	}
-	else printf("Nit %d je samo prosla kroz semafor.\n",PCB::running->myThread->getId());
-
+	PCB::running->timeExceeded = 1;
 	unlock
-
-	printf("Nit %d timeExceeded = %d\n",PCB::running->myThread->getId(),PCB::running->timeExceeded);
-
-	return PCB::running->timeExceeded;
+	return 1;
 }
 
-/*
+
+
 int KernelSem::signal(int n) {
 	lock
+
 	if (n<0) {
 		unlock
 		return n;
@@ -129,58 +85,37 @@ int KernelSem::signal(int n) {
 	if (n == 0) num_of_threads = 1;
 	else num_of_threads = n;
 
-	PCB* temp;
+	value += num_of_threads;
+
+	PCB* temp = 0;
 
 	int ret = 0;
-	for (int i = 0; i < num_of_threads; i++) {
-		//temp = waiting->getFirst();
-		//if (temp->waitTime) System::blockedThreads->remove(temp);
-		if (!unlimited->isEmpty()) temp = unlimited->getFirst();
-		else
-			if(!limitedTime->isEmpty()) temp = limitedTime->getFirst();
-		if (!temp) break;
-		temp->waitTime = 0;
-		temp->timeExceeded = 1;
-		temp->semWaitingOn = 0;
-		temp->waitTime = 0;
-		temp->myThread->start();
-		ret++;
-	}
-	value += num_of_threads;
-	unlock
-	return (n==0) ? 0 : ret;
-}
-*/
 
-int KernelSem::signal(int n) {
-	lock
-	if (n<0) {
+	if (value <= 0) {
+		for (int i = 0; i < num_of_threads; i++) {
+
+			if (!total.isEmpty())
+				temp = total.getFirst();
+			if (!temp) break;
+			if (temp->waitTime)
+				limitedTime.remove(temp);
+			else
+				unlimited.remove(temp);
+			temp->waitTime = 0;
+			temp->timeExceeded = 1;
+			temp->semWaitingOn = 0;
+			temp->state = READY;
+			Scheduler::put(temp);
+			ret++;
+		}
 		unlock
-		return n;
+		return ret;
 	}
-
-	int num_of_threads;
-	if (n == 0) num_of_threads = 1;
-	else num_of_threads = n;
-
-	PCB* temp;
-
-	int ret = 0;
-	for (int i = 0; i < num_of_threads; i++) {
-		temp = waiting->getFirst();
-		if (temp->waitTime) System::blockedThreads->remove(temp);
-		if (!temp) break;
-		printf("Nit %d je odblokirana SIGNALOM.\n",temp->myThread->getId());
-		temp->waitTime = 0;
-		temp->timeExceeded = 1;
-		temp->semWaitingOn = 0;
-		temp->waitTime = 0;
-		temp->state = READY;
-		Scheduler::put(temp);
-		ret++;
-	}
-	value += num_of_threads;
 	unlock
-	return (n==0) ? 0 : ret;
+	return 0;
 }
+
+
+
+
 

@@ -25,23 +25,16 @@ extern void tick();
 #define lock System::lockFlag = 0;
 #define unlock { System::lockFlag = 1; if (System::context_on_demand) dispatch(); }
 
-extern int syncPrintf(const char *format, ...);
-
-
-class FirstThread;
-class Idle;
-
 class System {
 
 public:
 
 	static volatile unsigned lockFlag; // Unlocked
 
-	static List *threads, *blockedThreads;
+	static List *threads;
 	static SemList *semaphores;
 
-	static FirstThread *firstThread;
-	static Idle *idleThread;
+	static Thread *firstThread, *idleThread;
 
 	static pInterrupt oldRoutine;
 

@@ -6,12 +6,10 @@
  */
 #include "semaphor.h"
 #include "krnlsem.h"
-#include "system.h"
 #include "listpcb.h"
 
 Semaphore::Semaphore(int init) {
 	myImpl = new KernelSem(init,this);
-	System::semaphores->add(myImpl);
 }
 
 Semaphore::~Semaphore() {
@@ -34,6 +32,3 @@ void Semaphore::incVal() {
 	myImpl->incVal();
 }
 
-List* Semaphore::waitingList() {
-	return myImpl->waiting;
-}

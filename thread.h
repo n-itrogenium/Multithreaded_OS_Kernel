@@ -3,7 +3,7 @@
 #define _thread_h_
 
 #include "system.h"
-#include "schedule.h"
+#include "SCHEDULE.H"
 
 typedef unsigned long StackSize;
 const StackSize defaultStackSize = 4096;

@@ -25,9 +25,7 @@ BoundedBuffer::~BoundedBuffer(){
 
 int BoundedBuffer::append (char d) {
 	spaceAvailable.wait(0);
-	printf("Nit %d prosla spaceAvailable semafor\n",PCB::running->myThread->getId());
 	mutexa.wait(0);
-	printf("Nit %d prosla mutexA semafor\n",PCB::running->myThread->getId());
 		buffer[tail] = d;
 		tail = (tail+1)%Size;
 	mutexa.signal();

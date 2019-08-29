@@ -7,6 +7,8 @@
 
 #include "listsem.h"
 #include "krnlsem.h"
+#include "listpcb.h"
+#include "pcb.h"
 
 SemList::SemList() {
 	head = tail = 0;
@@ -64,11 +66,26 @@ KernelSem* SemList::getFirst() {
 
 
 void SemList::onTick() {
-	if (!head) return;
-	Node* temp = head;
-	while (temp) {
-		temp->sem->waiting->tickTime();
-		temp = temp->next;
+	Node* curr = head;
+	while (curr) {
+		List::Node *temp = curr->sem->limitedTime.head;
+		int counter = 0;
+		while (temp) {
+			temp->pcb->waitTime--;
+			if (temp->pcb->waitTime <= 0) {
+				counter++;
+				temp->pcb->timeExceeded = 0;
+				temp->pcb->semWaitingOn = 0;
+				temp->pcb->state = READY;
+				Scheduler::put(temp->pcb);
+				temp = temp->next;
+				curr->sem->limitedTime.remove(temp->pcb);
+			}
+			else
+				temp = temp->next;
+		}
+		curr->sem->value += counter;
+		curr = curr->next;
 	}
 }
 

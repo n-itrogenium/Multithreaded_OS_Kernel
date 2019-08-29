@@ -10,13 +10,10 @@
 #include "pcb.h"
 #include <dos.h>
 #include <stdio.h>
-#include "idle.h"
-#include "frstthrd.h"
 #include "listsem.h"
 
 
 List* System::threads = new List();
-List* System::blockedThreads = new List();
 SemList* System::semaphores = new SemList();
 
 volatile unsigned System::lockFlag = 1;
@@ -24,8 +21,7 @@ volatile unsigned System::lockFlag = 1;
 volatile int System::counter = 0;
 volatile int System::context_on_demand = 0;
 
-FirstThread* System::firstThread = 0;
-Idle* System::idleThread = 0;
+Thread *System::firstThread = 0, *System::idleThread = 0;
 
 pInterrupt System::oldRoutine = 0;
 
@@ -39,13 +35,13 @@ void System::inic() {
 	setvect(OLD_ENTRY, timer);
 	asm { popf; }
 #endif
+	firstThread = new Thread();
+	firstThread->getMyPCB()->state = READY;
+	counter = firstThread->getMyPCB()->timeSlice;
+	PCB::running = firstThread->getMyPCB();
 
-	System::firstThread = new FirstThread();
-	System::firstThread->inic();
-	System::counter = System::firstThread->getMyPCB()->timeSlice;
-
-	System::idleThread = new Idle();
-	System::idleThread->start();
+	idleThread = new Thread(128,1);
+	idleThread->getMyPCB()->state = READY;
 }
 
 void System::restore() {
@@ -54,8 +50,8 @@ void System::restore() {
 	setvect(OLD_ENTRY, System::oldRoutine);
 	asm { popf; }
 #endif
-	System::blockedThreads->~List();
-	delete blockedThreads;
+	delete idleThread;
+	delete firstThread;
 }
 
 
@@ -65,10 +61,9 @@ void interrupt timer(...) {
 		System::counter--;
 		tick();
 		System::semaphores->onTick();
-		//System::blockedThreads->tickTime();
 		(*System::oldRoutine)();
 	}
-	if (System::counter == 0 || System::context_on_demand) {
+	if (System::counter <= 0 || System::context_on_demand) {
 		if (System::lockFlag) { 	// If it's unlocked
 			System::context_on_demand = 0;	// Reset request
 #ifndef BCC_BLOCK_IGNORE
@@ -81,18 +76,15 @@ void interrupt timer(...) {
 			PCB::running->sp = tsp;
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
-			int flag = 0;
-			printf("Kontekst niti: %d\n",PCB::running->myThread->getId());
 			if ((PCB::running->state == READY) && (PCB::running->myThread != System::idleThread)) {
-				flag = 1;
-				Scheduler::put((PCB*)PCB::running);
+				Scheduler::put((PCB*) PCB::running);
 			}
 
-			if (flag) printf("Stavljam nit %d u scheduler\n ",PCB::running->myThread->getId());
-
 			PCB::running = Scheduler::get();
-			if (!(PCB::running)) PCB::running = System::idleThread->getMyPCB();
-			printf("Kontekst niti POSLE VADJENJA IZ SCHEDULERA: %d\n",PCB::running->myThread->getId());
+
+			if (!(PCB::running))
+				PCB::running = System::idleThread->getMyPCB();
+
 			System::counter = PCB::running->timeSlice;
 
 			tsp = PCB::running->sp;
@@ -112,17 +104,4 @@ void interrupt timer(...) {
 			System::context_on_demand = 1;
 		}
 	}
-}
-
-int syncPrintf(const char *format, ...) {
-	int res;
-	va_list args;
-#ifndef BCC_BLOCK_IGNORE
-    asm { pushf; cli; }
-    va_start(args, format);
-    res = vprintf(format, args);
-    va_end(args);
-    asm { popf; }
-#endif
-    return res;
 }

@@ -19,6 +19,8 @@ typedef unsigned Address;
 typedef unsigned int TimeFlag;
 enum Flag { START, READY, FINISHED, BLOCKED };
 
+class List;
+
 class PCB {
 
 public:
@@ -32,7 +34,7 @@ public:
 	Semaphore* semWaitingOn;
 	Thread* myThread;
 	static volatile PCB* running;
-	List *waitingToComplete;
+	List waitingToComplete;
 
 	PCB(StackSize stackSize, Time timeSlice, Thread* myThread);
 	virtual ~PCB();

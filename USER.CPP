@@ -85,7 +85,7 @@ Producer::Producer (BoundedBuffer* bb, char y, Time time_slice)
 	while(!theEnd) {
 		char d = produce();
 		myBuffer->append(d);
-		printf("Nit %d je proizvela karakter %c \n ",PCB::running->myThread->getId(),d);
+		//printf("Nit %d je proizvela karakter %c \n ",PCB::running->myThread->getId(),d);
 		assert(1 != sleep.wait(10));
 	}
 }
@@ -95,8 +95,8 @@ Producer::Producer (BoundedBuffer* bb, char y, Time time_slice)
 
 void Consumer::consume(char p) {
 	intLock
-	printf("Nit %d : ",PCB::running->myThread->getId());
-	cout<<p<<"\n";
+	//printf("Nit %d : ",PCB::running->myThread->getId());
+	cout<<p<<" ";
 	intUnlock
 } // Consume an item
 
