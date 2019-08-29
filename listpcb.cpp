@@ -17,6 +17,7 @@ List::~List() {
 }
 
 void List::add(PCB * pcb) {
+	//syncPrintf("Nit %d stavljam u red.\n",pcb->myThread->getId());
 	Node *newNode = new Node(pcb);
 	if (num_of_nodes == 0)
 		head = tail = newNode;
@@ -50,10 +51,12 @@ int List::isEmpty() {
 PCB* List::getFirst() {
 	if (!head) return 0;
 	Node *temp = head;
+	PCB* temp_pcb = temp->pcb;
 	head = head->next;
 	if (!head) tail = 0;
 	num_of_nodes--;
-	return temp->pcb;
+	delete temp;
+	return temp_pcb;
 }
 
 PCB* List::get(int ID) {
@@ -67,26 +70,39 @@ PCB* List::get(int ID) {
 }
 
 void List::tickTime() {
-	lock
+	//printf("Usla sam u metodu tickTime.\n");
 	if (!head) {
-		unlock
+		//printf("LISTA USPAVANIH NITI JE PRAZNA\nKontekst niti: %d\n",PCB::running->myThread->getId());
 		return;
 	}
-	Node* temp = head;
+	Node* temp = head, *prev = 0;
 	PCB* curr_pcb = 0;
 	while (temp) {
-		if (--(temp->pcb->waitTime) == 0) {
+		temp->pcb->waitTime--;
+
+		if (temp->pcb->waitTime == 0) {
+			printf("Nit %d ---------------- odblokirana!\n",temp->pcb->myThread->getId());
 			curr_pcb = temp->pcb;
 			curr_pcb->timeExceeded = 0;
 			curr_pcb->semWaitingOn->incVal();
 			curr_pcb->semWaitingOn->waitingList()->remove(curr_pcb);
 			curr_pcb->semWaitingOn = 0;
-			curr_pcb->myThread->start();
+			curr_pcb->state = READY;
+			Scheduler::put(curr_pcb);
+			//printf("THEN: Sa elementa %d prelazim na element %d\n",temp->pcb->myThread->getId(),temp->next->pcb->myThread->getId());
+			//if (!temp->next) printf("Kraj liste.\n");
+			temp = temp->next;
 			remove(curr_pcb);
-		}
-		temp = temp->next;
+		}  else //printf("Nijedna se nije odblokirala.\n");
+		 {
+			//printf("ELSE: Sa elementa %d prelazim na element %d\n",temp->pcb->myThread->getId(),temp->next->pcb->myThread->getId());
+			//if (!temp->next) printf("Kraj liste.\n");
+			temp = temp->next;
+		 }
+
+
 	}
-	unlock
+	//printf("Izlazim iz metode tickTime.\n");
 }
 
 

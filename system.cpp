@@ -21,7 +21,7 @@ SemList* System::semaphores = new SemList();
 
 volatile unsigned System::lockFlag = 1;
 
-volatile int System::counter = 20;
+volatile int System::counter = 0;
 volatile int System::context_on_demand = 0;
 
 FirstThread* System::firstThread = 0;
@@ -34,12 +34,15 @@ Address tsp = 0, tss = 0, tbp = 0;
 
 void System::inic() {
 #ifndef BCC_BLOCK_IGNORE
+	asm { pushf; cli; }
 	System::oldRoutine = getvect(OLD_ENTRY);
 	setvect(OLD_ENTRY, timer);
+	asm { popf; }
 #endif
 
 	System::firstThread = new FirstThread();
 	System::firstThread->inic();
+	System::counter = System::firstThread->getMyPCB()->timeSlice;
 
 	System::idleThread = new Idle();
 	System::idleThread->start();
@@ -47,8 +50,11 @@ void System::inic() {
 
 void System::restore() {
 #ifndef BCC_BLOCK_IGNORE
+	asm { pushf; cli; }
 	setvect(OLD_ENTRY, System::oldRoutine);
+	asm { popf; }
 #endif
+	System::blockedThreads->~List();
 	delete blockedThreads;
 }
 
@@ -58,8 +64,9 @@ void interrupt timer(...) {
 	if (!System::context_on_demand) {
 		System::counter--;
 		tick();
+		System::semaphores->onTick();
+		//System::blockedThreads->tickTime();
 		(*System::oldRoutine)();
-		System::blockedThreads->tickTime();
 	}
 	if (System::counter == 0 || System::context_on_demand) {
 		if (System::lockFlag) { 	// If it's unlocked
@@ -74,14 +81,18 @@ void interrupt timer(...) {
 			PCB::running->sp = tsp;
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
+			int flag = 0;
+			printf("Kontekst niti: %d\n",PCB::running->myThread->getId());
+			if ((PCB::running->state == READY) && (PCB::running->myThread != System::idleThread)) {
+				flag = 1;
+				Scheduler::put((PCB*)PCB::running);
+			}
 
-			if (PCB::running->myThread != System::idleThread
-					&& PCB::running->state == READY)
-				Scheduler::put((PCB *)PCB::running);
+			if (flag) printf("Stavljam nit %d u scheduler\n ",PCB::running->myThread->getId());
 
 			PCB::running = Scheduler::get();
 			if (!(PCB::running)) PCB::running = System::idleThread->getMyPCB();
-
+			printf("Kontekst niti POSLE VADJENJA IZ SCHEDULERA: %d\n",PCB::running->myThread->getId());
 			System::counter = PCB::running->timeSlice;
 
 			tsp = PCB::running->sp;

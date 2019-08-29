@@ -31,7 +31,7 @@ public:
 
 	Semaphore* semWaitingOn;
 	Thread* myThread;
-	static PCB* running;
+	static volatile PCB* running;
 	List *waitingToComplete;
 
 	PCB(StackSize stackSize, Time timeSlice, Thread* myThread);

@@ -18,12 +18,12 @@ class KernelSem {
 private:
 
 	int value;
-	static int staticID;
-	int ID;
+
 public:
 
 	Semaphore* mySem;
 	List* waiting;
+	//List *limitedTime, *unlimited;
 
 	KernelSem(int init, Semaphore* mySem);
 	virtual ~KernelSem();

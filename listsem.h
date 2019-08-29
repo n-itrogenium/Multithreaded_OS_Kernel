@@ -35,6 +35,7 @@ public:
 	void remove(KernelSem* sem);
 	int isEmpty();
 	KernelSem* getFirst();
+	void onTick();
 
 };
 

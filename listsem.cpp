@@ -6,6 +6,7 @@
  */
 
 #include "listsem.h"
+#include "krnlsem.h"
 
 SemList::SemList() {
 	head = tail = 0;
@@ -62,5 +63,13 @@ KernelSem* SemList::getFirst() {
 }
 
 
+void SemList::onTick() {
+	if (!head) return;
+	Node* temp = head;
+	while (temp) {
+		temp->sem->waiting->tickTime();
+		temp = temp->next;
+	}
+}
 
 

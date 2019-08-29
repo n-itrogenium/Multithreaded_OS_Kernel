@@ -23,12 +23,13 @@ PCB * Thread::getMyPCB() {
 }
 
 void Thread::start() {
+	printf("Stavljam nit %d u scheduler\n ",myPCB->myThread->getId());
 	myPCB->state = READY;
 	Scheduler::put(myPCB);
 }
 
 void Thread::waitToComplete() {
-	lock
+	//lock
 	myPCB->waitToComplete(this);
 }
 

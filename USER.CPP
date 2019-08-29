@@ -13,6 +13,7 @@
 #include "keyevent.h"
 #include "user.h"
 #include "semaphor.h"
+#include "pcb.h"
 
 //---------------------------------------------------------------------------//
 //  Otkomentarisati ukoliko se testiraju signali
@@ -71,7 +72,6 @@ private:
 //---------------------------------------------------------------------------//
 // Korisnicki program mora obavezno da definise ovu f-ju
 //---------------------------------------------------------------------------//
-
 void tick(){
 }
 
@@ -85,6 +85,7 @@ Producer::Producer (BoundedBuffer* bb, char y, Time time_slice)
 	while(!theEnd) {
 		char d = produce();
 		myBuffer->append(d);
+		printf("Nit %d je proizvela karakter %c \n ",PCB::running->myThread->getId(),d);
 		assert(1 != sleep.wait(10));
 	}
 }
@@ -94,7 +95,8 @@ Producer::Producer (BoundedBuffer* bb, char y, Time time_slice)
 
 void Consumer::consume(char p) {
 	intLock
-	cout<<p<<" ";
+	printf("Nit %d : ",PCB::running->myThread->getId());
+	cout<<p<<"\n";
 	intUnlock
 } // Consume an item
 

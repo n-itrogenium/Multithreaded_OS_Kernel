@@ -6,7 +6,8 @@
 #include "bounded.h"
 
 #include <stdlib.h>
-
+#include <stdio.h>
+#include "pcb.h"
 #include "intLock.h"
 
 BoundedBuffer::BoundedBuffer (unsigned size) : Size(size),
@@ -24,7 +25,9 @@ BoundedBuffer::~BoundedBuffer(){
 
 int BoundedBuffer::append (char d) {
 	spaceAvailable.wait(0);
+	printf("Nit %d prosla spaceAvailable semafor\n",PCB::running->myThread->getId());
 	mutexa.wait(0);
+	printf("Nit %d prosla mutexA semafor\n",PCB::running->myThread->getId());
 		buffer[tail] = d;
 		tail = (tail+1)%Size;
 	mutexa.signal();
