@@ -80,6 +80,7 @@ void SemList::onTick() {
 				Scheduler::put(temp->pcb);
 				temp = temp->next;
 				curr->sem->limitedTime.remove(temp->pcb);
+				curr->sem->total.remove(temp->pcb);
 			}
 			else
 				temp = temp->next;
