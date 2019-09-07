@@ -9,7 +9,7 @@
 #include "listpcb.h"
 
 Semaphore::Semaphore(int init) {
-	myImpl = new KernelSem(init,this);
+	myImpl = new KernelSem(this,init);
 }
 
 Semaphore::~Semaphore() {

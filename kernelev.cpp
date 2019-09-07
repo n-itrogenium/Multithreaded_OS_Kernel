@@ -13,22 +13,23 @@ KernelEv::KernelEv(IVTNo ivtNo, Event* myEvent) {
 	this->myEvent = myEvent;
 	this->myCreator = (PCB*)PCB::running;
 	blocked = 0;
-	value = 0;
-	IVTEntry* entry = IVTEntry::IVT[this->ivtNo];
-	if (entry && !entry->getMyEvent())
+	value = 1;
+	IVTEntry* entry = IVTEntry::IVT[ivtNo];
+	//if (entry && !entry->getMyEvent())
 		entry->setMyEvent(this);
 
 }
 
 KernelEv::~KernelEv() {
 	signal();
-	if (IVTEntry::IVT[ivtNo] && IVTEntry::IVT[ivtNo]->getMyEvent() == this)
+	//if (IVTEntry::IVT[ivtNo] && IVTEntry::IVT[ivtNo]->getMyEvent() == this)
 		IVTEntry::IVT[ivtNo]->setMyEvent(0);
 }
 
 void KernelEv::wait() {
 	if (PCB::running == myCreator) {
-		if (value == 0) {
+		if (value == 1) {
+			value = 0;
 			PCB::running->state = BLOCKED;
 			blocked = (PCB*)PCB::running;
 			dispatch();
@@ -38,13 +39,13 @@ void KernelEv::wait() {
 }
 
 void KernelEv::signal() {
-	if (!blocked) value = 1;
-	else {
+	if (blocked != 0 && blocked->stack != 0) {
 		if (blocked->state == BLOCKED) {
+			value = 1;
 			blocked->state = READY;
 			Scheduler::put(blocked);
 			blocked = 0;
 			dispatch();
-		}
+		} else value = 0;
 	}
 }

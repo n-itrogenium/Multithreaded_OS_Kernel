@@ -8,17 +8,25 @@
 #include "krnlsem.h"
 #include "pcb.h"
 
-KernelSem::KernelSem(int init, Semaphore* mySem) {
-	if (value >= 0) value = init;
-	else value = 0;
+int KernelSem::staticID = 0;
+
+KernelSem::KernelSem(Semaphore* mySem, int init = 1) {
+	ID = ++staticID;
+	//if (value >= 0)
+		value = init;
+	//else value = 0;
 	this->mySem = mySem;
 	System::semaphores->add(this);
 }
 
 KernelSem::~KernelSem() {
-	PCB* temp;
-	while(!total.isEmpty()) {
+	PCB* temp = 0;
+	int counter = total.num_of_nodes;
+	while(counter--) {
 		temp = total.getFirst();
+		if (!temp || !temp->stack) {
+			continue;
+		}
 		temp->timeExceeded = 1;
 		temp->semWaitingOn = 0;
 		temp->waitTime = 0;
@@ -26,13 +34,10 @@ KernelSem::~KernelSem() {
 		Scheduler::put(temp);
 	}
 
-	temp = unlimited.head->pcb;
-	while(!unlimited.isEmpty())
-		temp = unlimited.getFirst();
-
-	temp = limitedTime.head->pcb;
-	while(!limitedTime.isEmpty())
-			temp = limitedTime.getFirst();
+	counter = limitedTime.num_of_nodes;
+	while(counter--) {
+		temp = limitedTime.getFirst();
+	}
 
 	System::semaphores->remove(this);
 }
@@ -52,9 +57,7 @@ int KernelSem::wait(Time maxTimeToWait) {
 		PCB::running->state = BLOCKED;
 		PCB::running->semWaitingOn = mySem;
 		total.add((PCB*) PCB::running);
-		if (maxTimeToWait == 0)
-			unlimited.add((PCB*) PCB::running);
-		else {
+		if (maxTimeToWait > 0){
 			PCB::running->waitTime = maxTimeToWait;
 			limitedTime.add((PCB*) PCB::running);
 		}
@@ -85,32 +88,29 @@ int KernelSem::signal(int n) {
 	if (n == 0) num_of_threads = 1;
 	else num_of_threads = n;
 
-	value += num_of_threads;
-
 	PCB* temp = 0;
 
-	int ret = 0;
-
 	if (value <= 0) {
-		for (int i = 0; i < num_of_threads; i++) {
-
-			if (!total.isEmpty())
-				temp = total.getFirst();
+		value += num_of_threads;
+		int counter = total.num_of_nodes, ret = 0;
+		while (counter--) {
+			temp = total.getFirst();
 			if (!temp) break;
+			if (!temp->stack) continue;
 			if (temp->waitTime)
 				limitedTime.remove(temp);
-			else
-				unlimited.remove(temp);
 			temp->waitTime = 0;
 			temp->timeExceeded = 1;
 			temp->semWaitingOn = 0;
 			temp->state = READY;
+			//printf("signal KERNELSEM - U scheduler: %d\n",temp->myThread->getId());
 			Scheduler::put(temp);
 			ret++;
 		}
 		unlock
 		return ret;
 	}
+	value += num_of_threads;
 	unlock
 	return 0;
 }

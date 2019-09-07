@@ -85,9 +85,11 @@ Producer::Producer (BoundedBuffer* bb, char y, Time time_slice)
 	while(!theEnd) {
 		char d = produce();
 		myBuffer->append(d);
+		//printf("Radi\n");
 		//printf("Nit %d je proizvela karakter %c \n ",PCB::running->myThread->getId(),d);
 		assert(1 != sleep.wait(10));
 	}
+	//printf("Izasao iz while\n");
 }
 
 //---------------------------------------------------------------------------//
@@ -205,10 +207,14 @@ int userMain (int argc, char* argv[])
 
 	for (i=0; i<N; i++){
 		delete pro[i];
-	}  
+	}
+
 	delete [] pro;
+
 	delete kev;
+
 	delete con;
+
 	delete buff;
 
 	intLock

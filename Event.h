@@ -4,14 +4,9 @@
 
 typedef unsigned char IVTNo;
 
-#define intrLock asm {\
-pushf;\
-cli;\
-}
+#define intrLock asm { pushf; cli; }
 
-#define intrUnlock asm {\
-popf;\
-}
+#define intrUnlock asm { popf; }
 
 class KernelEv;
 

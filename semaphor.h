@@ -19,7 +19,7 @@ public:
 	void incVal();
 	List* waitingList();
 
-private:
+//private:
 	KernelSem* myImpl;
 };
 

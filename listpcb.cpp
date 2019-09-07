@@ -13,6 +13,7 @@ List::~List() {
 		oldNode = head;
 		head = head->next;
 		delete oldNode;
+		num_of_nodes--;
 	}
 }
 
@@ -40,6 +41,7 @@ void List::remove(PCB* pcb) {
 			if (!prev) head = temp;
 			else prev->next = temp;
 			delete oldNode;
+			num_of_nodes--;
 		}
 	}
 }
@@ -55,8 +57,8 @@ PCB* List::getFirst() {
 	if (!head) return 0;
 	Node *temp = head;
 	PCB* temp_pcb = temp->pcb;
-	head = head->next;
-	if (!head) tail = 0;
+	if (!head->next) head = tail = 0;
+	else head = head->next;
 	num_of_nodes--;
 	delete temp;
 	return temp_pcb;
@@ -80,12 +82,14 @@ int List::onTick() {
 	Node *temp = head;
 	int counter = 0;
 	while (temp) {
+		if (!(temp->pcb->stack)) continue;
 		temp->pcb->waitTime--;
 		if (temp->pcb->waitTime <= 0) {
 			counter++;
 			temp->pcb->timeExceeded = 0;
 			temp->pcb->semWaitingOn = 0;
 			temp->pcb->state = READY;
+			printf("LISTPCB - U scheduler: %d\n",temp->pcb->myThread->getId());
 			Scheduler::put(temp->pcb);
 			temp = temp->next;
 			remove(temp->pcb);

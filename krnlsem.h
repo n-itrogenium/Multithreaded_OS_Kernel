@@ -16,11 +16,13 @@ const int VAL_BLOCKED = -1;
 class KernelSem {
 
 public:
+	static int staticID;
+	int ID;
 	int value;
 	Semaphore* mySem;
-	List limitedTime, unlimited, total;
+	List limitedTime, total;
 
-	KernelSem(int init, Semaphore* mySem);
+	KernelSem(Semaphore* mySem, int init);
 	virtual ~KernelSem();
 
 	virtual int wait (Time maxTimeToWait);

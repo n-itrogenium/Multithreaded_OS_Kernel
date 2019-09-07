@@ -21,6 +21,7 @@ SemList::~SemList() {
 		oldNode = head;
 		head = head->next;
 		delete oldNode;
+		num_of_nodes--;
 	}
 }
 
@@ -46,6 +47,7 @@ void SemList::remove(KernelSem* sem) {
 			if (!prev) head = temp;
 			else prev->next = temp;
 			delete oldNode;
+			num_of_nodes--;
 		}
 	}
 }
@@ -71,12 +73,19 @@ void SemList::onTick() {
 		List::Node *temp = curr->sem->limitedTime.head;
 		int counter = 0;
 		while (temp) {
+			if (!(temp->pcb->stack)) {
+				curr->sem->limitedTime.remove(temp->pcb);
+				curr->sem->total.remove(temp->pcb);
+				temp = temp->next;
+				continue;
+			}
 			temp->pcb->waitTime--;
 			if (temp->pcb->waitTime <= 0) {
 				counter++;
 				temp->pcb->timeExceeded = 0;
 				temp->pcb->semWaitingOn = 0;
 				temp->pcb->state = READY;
+				//printf("SEMLIST - U scheduler: %d\n",temp->pcb->myThread->getId());
 				Scheduler::put(temp->pcb);
 				temp = temp->next;
 				curr->sem->limitedTime.remove(temp->pcb);

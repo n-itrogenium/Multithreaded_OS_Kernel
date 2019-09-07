@@ -7,6 +7,7 @@
 
 #include "pcb.h"
 #include <stdio.h>
+#include <dos.h>
 
 volatile PCB* PCB::running = 0;
 
@@ -23,7 +24,6 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 	stackSize /= sizeof(unsigned);
 	stack = new Address[stackSize];
 
-
 	stack[stackSize - 3] = 0x200;
 
 #ifndef BCC_BLOCK_IGNORE
@@ -36,7 +36,6 @@ PCB::PCB(StackSize stackSize, Time timeSlice, Thread* myThread) {
 	bp = sp;
 
 	stack[stackSize - 14] = bp;
-
 }
 
 PCB::~PCB() {
@@ -66,7 +65,9 @@ void PCB::wrapper() {
 	PCB* temp = 0;
 	while (PCB::running->waitingToComplete.num_of_nodes != 0) {
 		temp = ((PCB*)PCB::running)->waitingToComplete.getFirst();
+		//if(!temp || !temp->stack) continue;
 		temp->state = READY;
+		//printf("PCB WRAPPER - U scheduler: %d\n",temp->myThread->getId());
 		Scheduler::put(temp);
 	}
 	dispatch();

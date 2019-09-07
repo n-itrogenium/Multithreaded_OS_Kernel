@@ -10,6 +10,7 @@
 #include "pcb.h"
 #include <stdio.h>
 #include "listpcb.h"
+#include "krnlsem.h"
 
 Thread::Thread(StackSize stackSize, Time timeSlice) {
 	Id = ++staticID;
@@ -23,7 +24,7 @@ PCB * Thread::getMyPCB() {
 }
 
 void Thread::start() {
-	if (myPCB->state != READY) {
+	if (myPCB->state != READY && myPCB->stack != 0) {
 		myPCB->state = READY;
 		Scheduler::put(myPCB);
 	}
@@ -35,7 +36,10 @@ void Thread::waitToComplete() {
 }
 
 Thread::~Thread() {
-	waitToComplete();
+	//waitToComplete();
+	myPCB->semWaitingOn->myImpl->total.remove(myPCB);
+	//myPCB->semWaitingOn->myImpl->unlimited.remove(myPCB);
+	myPCB->semWaitingOn->myImpl->limitedTime.remove(myPCB);
 	System::threads->remove(myPCB);
 	delete myPCB;
 }
