@@ -68,34 +68,30 @@ KernelSem* SemList::getFirst() {
 
 
 void SemList::onTick() {
-	Node* curr = head;
-	while (curr) {
-		List::Node *temp = curr->sem->limitedTime.head;
-		int counter = 0;
-		while (temp) {
-			if (!(temp->pcb->stack)) {
-				curr->sem->limitedTime.remove(temp->pcb);
-				curr->sem->total.remove(temp->pcb);
-				temp = temp->next;
-				continue;
+	Node* temp = head;
+	while (temp) {
+		List::Node *curr = temp->sem->limitedTime.head, *prev = 0;
+			int counter = 0;
+			while (curr) {
+				curr->pcb->waitTime--;
+				if (curr->pcb->waitTime != 0) {
+					prev = curr; curr = curr->next;
+				}
+				else {
+					counter++;
+					List::Node* old = curr;
+					old->pcb->timeExceeded = 0;
+					old->pcb->state = READY;
+					Scheduler::put(old->pcb);
+					curr = curr->next;
+					if (!prev) temp->sem->limitedTime.head = curr;
+					else prev->next = curr;
+					delete old;
+					temp->sem->limitedTime.num_of_nodes--;
+				}
 			}
-			temp->pcb->waitTime--;
-			if (temp->pcb->waitTime <= 0) {
-				counter++;
-				temp->pcb->timeExceeded = 0;
-				temp->pcb->semWaitingOn = 0;
-				temp->pcb->state = READY;
-				//printf("SEMLIST - U scheduler: %d\n",temp->pcb->myThread->getId());
-				Scheduler::put(temp->pcb);
-				temp = temp->next;
-				curr->sem->limitedTime.remove(temp->pcb);
-				curr->sem->total.remove(temp->pcb);
-			}
-			else
-				temp = temp->next;
-		}
-		curr->sem->value += counter;
-		curr = curr->next;
+		temp->sem->value += counter;
+		temp = temp->next;
 	}
 }
 

@@ -10,11 +10,9 @@
 
 int KernelSem::staticID = 0;
 
-KernelSem::KernelSem(Semaphore* mySem, int init = 1) {
+KernelSem::KernelSem(Semaphore* mySem, int init) {
 	ID = ++staticID;
-	//if (value >= 0)
-		value = init;
-	//else value = 0;
+	value = init;
 	this->mySem = mySem;
 	System::semaphores->add(this);
 }
@@ -37,6 +35,14 @@ KernelSem::~KernelSem() {
 	counter = limitedTime.num_of_nodes;
 	while(counter--) {
 		temp = limitedTime.getFirst();
+		if (!temp || !temp->stack) {
+			continue;
+		}
+		temp->timeExceeded = 1;
+		temp->semWaitingOn = 0;
+		temp->waitTime = 0;
+		temp->state = READY;
+		Scheduler::put(temp);
 	}
 
 	System::semaphores->remove(this);
@@ -53,14 +59,13 @@ void KernelSem::incVal() {
 
 int KernelSem::wait(Time maxTimeToWait) {
 	lock
-	if (--value < 0) {
+	if (--value < 0 && maxTimeToWait >= 0) {
 		PCB::running->state = BLOCKED;
 		PCB::running->semWaitingOn = mySem;
-		total.add((PCB*) PCB::running);
-		if (maxTimeToWait > 0){
-			PCB::running->waitTime = maxTimeToWait;
+		PCB::running->waitTime = maxTimeToWait;
+		if (maxTimeToWait > 0)
 			limitedTime.add((PCB*) PCB::running);
-		}
+		else total.add((PCB*) PCB::running);
 		unlock
 		dispatch();
 		lock
@@ -92,18 +97,18 @@ int KernelSem::signal(int n) {
 
 	if (value <= 0) {
 		value += num_of_threads;
-		int counter = total.num_of_nodes, ret = 0;
+		int counter = num_of_threads, ret = 0;
 		while (counter--) {
-			temp = total.getFirst();
+			temp = 0;
+			if (total.num_of_nodes) temp = total.getFirst();
+			else
+				if (limitedTime.num_of_nodes) temp = limitedTime.getFirst();
 			if (!temp) break;
-			if (!temp->stack) continue;
-			if (temp->waitTime)
-				limitedTime.remove(temp);
+			if (!temp->stack) { counter++; continue; }
 			temp->waitTime = 0;
 			temp->timeExceeded = 1;
 			temp->semWaitingOn = 0;
 			temp->state = READY;
-			//printf("signal KERNELSEM - U scheduler: %d\n",temp->myThread->getId());
 			Scheduler::put(temp);
 			ret++;
 		}

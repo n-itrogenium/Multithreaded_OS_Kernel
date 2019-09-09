@@ -22,10 +22,10 @@ public:
 	Semaphore* mySem;
 	List limitedTime, total;
 
-	KernelSem(Semaphore* mySem, int init);
+	KernelSem(Semaphore* mySem, int init = 1);
 	virtual ~KernelSem();
 
-	virtual int wait (Time maxTimeToWait);
+	virtual int wait (Time maxTimeToWait = 0);
 	virtual int signal(int n = 0);
 
 	int val () const;

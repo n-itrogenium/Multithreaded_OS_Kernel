@@ -65,9 +65,7 @@ void PCB::wrapper() {
 	PCB* temp = 0;
 	while (PCB::running->waitingToComplete.num_of_nodes != 0) {
 		temp = ((PCB*)PCB::running)->waitingToComplete.getFirst();
-		//if(!temp || !temp->stack) continue;
 		temp->state = READY;
-		//printf("PCB WRAPPER - U scheduler: %d\n",temp->myThread->getId());
 		Scheduler::put(temp);
 	}
 	dispatch();

@@ -36,9 +36,7 @@ void Thread::waitToComplete() {
 }
 
 Thread::~Thread() {
-	//waitToComplete();
 	myPCB->semWaitingOn->myImpl->total.remove(myPCB);
-	//myPCB->semWaitingOn->myImpl->unlimited.remove(myPCB);
 	myPCB->semWaitingOn->myImpl->limitedTime.remove(myPCB);
 	System::threads->remove(myPCB);
 	delete myPCB;

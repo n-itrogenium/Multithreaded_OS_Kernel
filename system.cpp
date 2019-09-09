@@ -50,14 +50,6 @@ void System::restore() {
 	setvect(OLD_ENTRY, System::oldRoutine);
 	asm { popf; }
 #endif
-	/*threads->~List();
-	delete threads;
-	semaphores->~SemList();
-	delete semaphores;
-	idleThread->~Thread();
-	delete idleThread;
-	firstThread->~Thread();
-	delete firstThread;*/
 }
 
 
@@ -83,17 +75,15 @@ void interrupt timer(...) {
 			PCB::running->ss = tss;
 			PCB::running->bp = tbp;
 			if (PCB::running->state == READY && PCB::running->myThread != System::idleThread) {
-				//printf("SYSTEM - U scheduler: %d\n",PCB::running->myThread->getId());
 				Scheduler::put((PCB*) PCB::running);
 			}
 
-			//do {
+			do {
 				PCB::running = Scheduler::get();
 				if (!(PCB::running))
 				PCB::running = System::idleThread->getMyPCB();
-			//} while(!PCB::running->stack);
+			} while(!PCB::running->stack);
 
-			//printf(" %d ",PCB::running->myThread->getId());
 			System::counter = PCB::running->timeSlice;
 
 			tsp = PCB::running->sp;

@@ -19,7 +19,7 @@ private:
 
 public:
 
-	PCB *myCreator, *blocked;
+	PCB *myCreator;
 	Event* myEvent;
 	IVTNo ivtNo;
 
